@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+from importlib.metadata import version
+
 from django.db import models
 
-__version__ = "0.1.0"
+__version__ = version("django-providerkit")
 
 
 fields_associations = {

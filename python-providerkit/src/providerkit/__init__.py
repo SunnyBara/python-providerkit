@@ -1,6 +1,8 @@
 """ProviderKit - Generic provider management library."""
 
-__version__ = "0.1.0"
+from importlib.metadata import version
+
+__version__ = version("providerkit")
 
 from .cli import main
 from .helpers import get_providers
