@@ -177,6 +177,16 @@ class ProviderBase(PackageMixin, UrlsMixin, ConfigMixin, ServiceMixin, CostMixin
             normalized = self.insert_data_as_dict(data, normalized, config)
         return normalized
 
+    def normalize_from_method_or_recursive(
+        self, data: dict[str, Any], field: str, cfg: dict[str, Any]
+    ) -> Any:
+        """Get value via get_normalize_{field} method, or fallback to _normalize_recursive."""
+        normalize_method = getattr(self, f"get_normalize_{field}", None)
+        if normalize_method and callable(normalize_method):
+            return normalize_method(data)
+        source = cfg.get("source", self.fields_associations.get(field, field))
+        return self._normalize_recursive(data, field, source)
+
     def normalize(
         self, data: dict[str, Any], config: dict[str, Any] | None = None, raw: bool = True
     ) -> dict[str, Any]:
@@ -185,12 +195,7 @@ class ProviderBase(PackageMixin, UrlsMixin, ConfigMixin, ServiceMixin, CostMixin
         fields = config.get('fields', {})
         normalized: dict[str, Any] = {}
         for field, cfg in fields.items():
-            normalize_method = getattr(self, f'get_normalize_{field}', None)
-            if normalize_method and callable(normalize_method):
-                value = normalize_method(data)
-            else:
-                source = cfg.get('source', self.fields_associations.get(field, field))
-                value = self._normalize_recursive(data, field, source)
+            value = self.normalize_from_method_or_recursive(data, field, cfg)
             label = field if self.provider_key == 'key' else cfg.get(self.provider_key, field)
             normalized[label] = value
         normalized = self.insert_data_normalized(data, normalized, config)
