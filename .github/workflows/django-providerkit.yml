@@ -45,7 +45,7 @@ jobs:
           python -m pip install "Django==${{ matrix.django-version }}"
           python -m pip install djangorestframework python-dotenv
           python -m pip install "clicommands @ git+https://github.com/SunnyBara/python-clicommands.git@3d8b78ba62d1ff3fff0803060a467d8f44cbc86a"
-          python -m pip install -e ../python-providerkit.yml
+          python -m pip install -e ../python-providerkit
           python -m pip install -e ".[test]"
 
       - name: Django system check
