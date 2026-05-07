@@ -1,0 +1,73 @@
+name: Python providerkit tests
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "python-providerkit/**"
+      - ".github/workflows/python-providerkit-test.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "python-providerkit/**"
+      - ".github/workflows/python-providerkit-test.yml"
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    defaults:
+      run:
+        working-directory: python-providerkit
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "clicommands @ git+https://github.com/SunnyBara/python-clicommands.git@3d8b78ba62d1ff3fff0803060a467d8f44cbc86a"
+          python -m pip install -e ".[test]"
+
+      - name: Run tests
+        run: python -m pytest
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    defaults:
+      run:
+        working-directory: python-providerkit
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build distributions
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "clicommands @ git+https://github.com/SunnyBara/python-clicommands.git@3d8b78ba62d1ff3fff0803060a467d8f44cbc86a"
+          python -m pip install build twine
+          python -m build
+          python -m twine check dist/*
